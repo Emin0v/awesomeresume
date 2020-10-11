@@ -8,6 +8,7 @@ import com.company.dao.inter.UserSkillDaoInter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,12 +19,13 @@ import java.util.List;
 public class UserSkillDaoImpl extends AbstractDAO implements UserSkillDaoInter {
 
     private UserSkill getUserSkill(ResultSet rs) throws Exception {
+        int userSkillId = rs.getInt("userSkillId");
         int skillId = rs.getInt("skill_id");
         int userId = rs.getInt("id");
         String skillName = rs.getString("skill_name");
         int power = rs.getInt("power");
 
-        return new UserSkill(null, new User(userId), new Skill(skillId, skillName), power);
+        return new UserSkill(userSkillId, new User(userId), new Skill(skillId, skillName), power);
     }
 
     @Override
@@ -32,7 +34,8 @@ public class UserSkillDaoImpl extends AbstractDAO implements UserSkillDaoInter {
         try (
                 Connection c = connect()) {
 
-            PreparedStatement stmt = c.prepareStatement("SELECT  "
+            PreparedStatement stmt = c.prepareStatement("SELECT "
+                    + " us.id as userSkillId ,"
                     + "	u.*, "
                     + "	us.skill_id, "
                     + "	s.NAME AS skill_name, "
@@ -57,4 +60,35 @@ public class UserSkillDaoImpl extends AbstractDAO implements UserSkillDaoInter {
         return result;
     }
 
+    @Override
+    public boolean removeUserSkill(int id) {
+        try (
+                Connection c = connect()) {
+
+            Statement stmt = c.createStatement();
+
+            return stmt.execute("delete from user_skill where id=" + id);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
+    
+    @Override
+    public boolean insertUserSkill(UserSkill s) {
+        try (Connection c = connect()) {
+            PreparedStatement stmt = c.prepareStatement("insert into user_skill(user_id,skill_id,power) values(?,?,?)");
+            stmt.setInt(1, s.getUser().getId());
+            System.out.println("s.getSkill().getId()="+s.getSkill().getId());
+            stmt.setInt(2, s.getSkill().getId());
+            stmt.setInt(3, s.getPower());
+
+            return stmt.execute();
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return false;
+        }
+    }
 }

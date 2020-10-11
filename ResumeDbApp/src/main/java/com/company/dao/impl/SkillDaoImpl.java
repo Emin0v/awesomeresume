@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.company.dao.impl;
 
 import com.company.dao.inter.AbstractDAO;
@@ -51,9 +46,14 @@ public class SkillDaoImpl extends AbstractDAO implements SkillDaoInter {
     @Override
     public boolean insertSkill(Skill s) {
         try (Connection c = connect()) {
-            PreparedStatement stmt = c.prepareStatement("insert into skill(id,name) values(?,?)");
-            stmt.setInt(1, s.getId());
-            stmt.setString(2, s.getName());
+            PreparedStatement stmt = c.prepareStatement("insert into skill(name) values(?)", Statement.RETURN_GENERATED_KEYS);
+            // stmt.setInt(1, s.getId());
+            stmt.setString(1, s.getName());
+
+            ResultSet generatedKeys = stmt.getGeneratedKeys();
+            if (generatedKeys.next()) {
+                s.setId(generatedKeys.getInt(1));
+            }
 
             return stmt.execute();
 
